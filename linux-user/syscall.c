@@ -94,7 +94,7 @@ int __clone2(int (*fn)(void *), void *child_stack_base,
 #include <linux/utsname.h>
 #include <linux/cdrom.h>
 #include <linux/hdreg.h>
-#include <linux/soundcard.h>
+#include <linux/soundcard.h.oss3>
 #include <linux/kd.h>
 #include <linux/mtio.h>
 #include <linux/fs.h>
@@ -110,6 +110,7 @@ int __clone2(int (*fn)(void *), void *child_stack_base,
 #include "cpu-uname.h"
 
 #include "qemu.h"
+#include "glhost.h"
 
 #define CLONE_NPTL_FLAGS2 (CLONE_SETTLS | \
     CLONE_PARENT_SETTID | CLONE_CHILD_SETTID | CLONE_CHILD_CLEARTID)
@@ -5106,6 +5107,11 @@ abi_long do_syscall(void *cpu_env, int num, abi_long arg1,
         print_syscall(num, arg1, arg2, arg3, arg4, arg5, arg6);
 
     switch(num) {
+    case SYS_proxy: {
+        glIndexedCall((const void *)arg1, (void *)arg2);
+        ret = 0;
+        break;
+    }
     case TARGET_NR_exit:
         /* In old applications this may be used to implement _exit(2).
            However in threaded applictions it is used for thread termination,

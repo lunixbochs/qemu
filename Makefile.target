@@ -155,6 +155,8 @@ ifndef CONFIG_HAIKU
 LIBS+=-lm
 endif
 
+LIBS+=-lglhost -ldl
+
 ifdef QEMU_PROGW
 # The linker builds a windows executable. Make also a console executable.
 $(QEMU_PROGW): $(all-obj-y) ../libqemuutil.a ../libqemustub.a
