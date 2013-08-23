@@ -2432,6 +2432,7 @@ struct target_mq_attr {
 #include "socket.h"
 
 #include "errno_defs.h"
+#include "ioctls_alsa_structs.h"
 
 #define FUTEX_WAIT              0
 #define FUTEX_WAKE              1
