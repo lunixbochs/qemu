@@ -3650,7 +3650,12 @@ static abi_long do_ioctl(int fd, abi_long cmd, abi_long arg)
     ie = ioctl_entries;
     for(;;) {
         if (ie->target_cmd == 0) {
-            gemu_log("Unsupported ioctl: cmd=0x%04lx\n", (long)cmd);
+            int i;
+            gemu_log("Unsupported ioctl: cmd=0x%04x (%x)\n", cmd, (cmd & (TARGET_IOC_SIZEMASK << TARGET_IOC_SIZESHIFT)) >> TARGET_IOC_SIZESHIFT);
+            for(i=0;ioctl_entries[i].target_cmd;i++) {
+                if((ioctl_entries[i].target_cmd & ~(TARGET_IOC_SIZEMASK << TARGET_IOC_SIZESHIFT)) == (cmd & ~(TARGET_IOC_SIZEMASK << TARGET_IOC_SIZESHIFT)))
+                    gemu_log("%d\t->\t%s (%x)\n", ioctl_entries[i].host_cmd, ioctl_entries[i].name, (ioctl_entries[i].target_cmd & (TARGET_IOC_SIZEMASK << TARGET_IOC_SIZESHIFT)) >> TARGET_IOC_SIZESHIFT);
+            }
             return -TARGET_ENOSYS;
         }
         if (ie->target_cmd == cmd)
