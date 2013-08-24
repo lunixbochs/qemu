@@ -25,7 +25,7 @@
 
 //#define DEBUG
 
-#define MAX_STRUCTS 128
+#define MAX_STRUCTS 1024
 
 /* XXX: make it dynamic */
 StructEntry struct_entries[MAX_STRUCTS];
