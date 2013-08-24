@@ -2538,24 +2538,24 @@ static inline abi_long do_semctl(int semid, int semnum, int cmd,
             break;
 	case GETALL:
 	case SETALL:
-            err = target_to_host_semarray(semid, &array, target_su.array);
+            err = target_to_host_semarray(semid, &array, tswapal(target_su.array));
             if (err)
                 return err;
             arg.array = array;
             ret = get_errno(semctl(semid, semnum, cmd, arg));
-            err = host_to_target_semarray(semid, target_su.array, &array);
+            err = host_to_target_semarray(semid, tswapal(target_su.array), &array);
             if (err)
                 return err;
             break;
 	case IPC_STAT:
 	case IPC_SET:
 	case SEM_STAT:
-            err = target_to_host_semid_ds(&dsarg, target_su.buf);
+            err = target_to_host_semid_ds(&dsarg, tswapal(target_su.buf));
             if (err)
                 return err;
             arg.buf = &dsarg;
             ret = get_errno(semctl(semid, semnum, cmd, arg));
-            err = host_to_target_semid_ds(target_su.buf, &dsarg);
+            err = host_to_target_semid_ds(tswapal(target_su.buf), &dsarg);
             if (err)
                 return err;
             break;
@@ -2563,7 +2563,7 @@ static inline abi_long do_semctl(int semid, int semnum, int cmd,
 	case SEM_INFO:
             arg.__buf = &seminfo;
             ret = get_errno(semctl(semid, semnum, cmd, arg));
-            err = host_to_target_seminfo(target_su.__buf, &seminfo);
+            err = host_to_target_seminfo(tswapal(target_su.__buf), &seminfo);
             if (err)
                 return err;
             break;
@@ -2979,8 +2979,9 @@ static inline abi_ulong do_shmat(int shmid, abi_ulong shmaddr, int shmflg)
         if (mmap_start == -1) {
             errno = ENOMEM;
             host_raddr = (void *)-1;
-        } else
-            host_raddr = shmat(shmid, g2h(mmap_start), shmflg | SHM_REMAP);
+        } else {
+            host_raddr = shmat(shmid, 0, shmflg);
+        }
     }
 
     if (host_raddr == (void *)-1) {
@@ -3043,9 +3044,16 @@ static abi_long do_ipc(unsigned int call, int first,
         ret = get_errno(semget(first, second, third));
         break;
 
-    case IPCOP_semctl:
-        ret = do_semctl(first, second, third, (union target_semun)(abi_ulong) ptr);
+    case IPCOP_semctl: {
+        union target_semun *target_su;
+        if (!lock_user_struct(VERIFY_READ, target_su, ptr, 1)) {
+            ret = -TARGET_EFAULT;
+            break;
+        }
+        ret = do_semctl(first, second, third, *target_su);
+        unlock_user_struct(target_su, ptr, 0);
         break;
+    }
 
     case IPCOP_msgget:
         ret = get_errno(msgget(first, second));
@@ -3111,7 +3119,7 @@ static abi_long do_ipc(unsigned int call, int first,
 
 	/* IPC_* and SHM_* command values are the same on all linux platforms */
     case IPCOP_shmctl:
-        ret = do_shmctl(first, second, third);
+        ret = do_shmctl(first, second, ptr);
         break;
     default:
 	gemu_log("Unsupported ipc call: %d (version %d)\n", call, version);
@@ -6882,9 +6890,16 @@ abi_long do_syscall(void *cpu_env, int num, abi_long arg1,
         break;
 #endif
 #ifdef TARGET_NR_semctl
-    case TARGET_NR_semctl:
-        ret = do_semctl(arg1, arg2, arg3, (union target_semun)(abi_ulong)arg4);
+    case TARGET_NR_semctl: {
+        union target_semun *target_su;
+        if (!lock_user_struct(VERIFY_READ, target_su, arg4, 1)) {
+            ret = -TARGET_EFAULT;
+            break;
+        }
+        ret = do_semctl(arg1, arg2, arg3, *target_su);
+        unlock_user_struct(target_su, ptr, 0);
         break;
+    }
 #endif
 #ifdef TARGET_NR_msgctl
     case TARGET_NR_msgctl:
