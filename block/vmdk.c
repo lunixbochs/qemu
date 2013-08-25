@@ -1588,6 +1588,8 @@ static int vmdk_create(const char *filename, QEMUOptionParameter *options)
             fmt = options->value.s;
         } else if (!strcmp(options->name, BLOCK_OPT_ZEROED_GRAIN)) {
             zeroed_grain |= options->value.n;
+        } else if (!strcmp(options->name, BLOCK_OPT_SCSI)) {
+            flags |= options->value.n ? BLOCK_FLAG_SCSI: 0;
         }
         options++;
     }
@@ -1691,7 +1693,7 @@ static int vmdk_create(const char *filename, QEMUOptionParameter *options)
             ext_desc_lines,
             (flags & BLOCK_FLAG_COMPAT6 ? 6 : 4),
             total_size / (int64_t)(63 * number_heads * 512), number_heads,
-                adapter_type);
+            flags & BLOCK_FLAG_SCSI ? "lsilogic" : adapter_type);
     if (split || flat) {
         fd = qemu_open(filename,
                        O_WRONLY | O_CREAT | O_TRUNC | O_BINARY | O_LARGEFILE,
@@ -1819,6 +1821,11 @@ static QEMUOptionParameter vmdk_create_options[] = {
         .name = BLOCK_OPT_ZEROED_GRAIN,
         .type = OPT_FLAG,
         .help = "Enable efficient zero writes using the zeroed-grain GTE feature"
+    },
+    {
+        .name = BLOCK_OPT_SCSI,
+        .type = OPT_FLAG,
+        .help = "SCSI image"
     },
     { NULL }
 };

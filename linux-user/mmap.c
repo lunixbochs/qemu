@@ -30,6 +30,7 @@
 
 #include "qemu.h"
 #include "qemu-common.h"
+#include "tcg.h"
 
 //#define DEBUG_MMAP
 
@@ -40,6 +41,7 @@ void mmap_lock(void)
 {
     if (mmap_lock_count++ == 0) {
         pthread_mutex_lock(&mmap_mutex);
+        tcg_lock();
     }
 }
 
@@ -47,6 +49,7 @@ void mmap_unlock(void)
 {
     if (--mmap_lock_count == 0) {
         pthread_mutex_unlock(&mmap_mutex);
+        tcg_unlock();
     }
 }
 
@@ -366,6 +369,9 @@ abi_ulong mmap_find_vma(abi_ulong start, abi_ulong size)
     }
 }
 
+#define SNDRV_PCM_MMAP_OFFSET_STATUS  0x80000000
+#define SNDRV_PCM_MMAP_OFFSET_CONTROL 0x81000000
+
 /* NOTE: all the constants are the HOST ones */
 abi_long target_mmap(abi_ulong start, abi_ulong len, int prot,
                      int flags, int fd, abi_ulong offset)
@@ -399,6 +405,17 @@ abi_long target_mmap(abi_ulong start, abi_ulong len, int prot,
         printf("fd=%d offset=" TARGET_ABI_FMT_lx "\n", fd, offset);
     }
 #endif
+
+    /* Alsa tries to communcate with the kernel via mmap. This usually
+     * is a good idea when user- and kernelspace are running on the
+     * same architecture but does not work out when not. To make alsa
+     * not to use mmap, we can just have it fail on the mmap calls that
+     * would initiate this.
+     */
+    if(offset == SNDRV_PCM_MMAP_OFFSET_STATUS || offset == SNDRV_PCM_MMAP_OFFSET_CONTROL) {
+	errno = EINVAL;
+	return -1;
+    }
 
     if (offset & ~TARGET_PAGE_MASK) {
         errno = EINVAL;

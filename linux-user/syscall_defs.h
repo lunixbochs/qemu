@@ -889,6 +889,12 @@ struct target_pollfd {
 #define TARGET_BLKGETSIZE64 TARGET_IOR(0x12,114,abi_ulong)
                                              /* return device size in bytes
                                                 (u64 *arg) */
+#define TARGET_BLKDISCARD TARGET_IO(0x12,119)
+#define TARGET_BLKIOMIN TARGET_IO(0x12,120)
+#define TARGET_BLKIOOPT TARGET_IO(0x12,121)
+#define TARGET_BLKALIGNOFF TARGET_IO(0x12,122)
+#define TARGET_BLKPBSZGET TARGET_IO(0x12,123)
+#define TARGET_BLKDISCARDZEROES TARGET_IO(0x12,124)
 #define TARGET_FIBMAP     TARGET_IO(0x00,1)  /* bmap access */
 #define TARGET_FIGETBSZ   TARGET_IO(0x00,2)  /* get the block size used for bmap */
 #define TARGET_FS_IOC_FIEMAP TARGET_IOWR('f',11,struct fiemap)
@@ -1020,6 +1026,7 @@ struct target_pollfd {
 #define TARGET_LOOP_SET_STATUS64      0x4C04
 #define TARGET_LOOP_GET_STATUS64      0x4C05
 #define TARGET_LOOP_CHANGE_FD         0x4C06
+#define TARGET_LOOP_BOGUS_CMD         0x4C82
 
 /* fb ioctls */
 #define TARGET_FBIOGET_VSCREENINFO    0x4600
@@ -2390,6 +2397,9 @@ struct target_eabi_flock64 {
 #define TARGET_MTIOCGET        TARGET_IOR('m', 2, struct mtget)
 #define TARGET_MTIOCPOS        TARGET_IOR('m', 3, struct mtpos)
 
+#define TARGET_FS_IOC_GETFLAGS TARGET_IORU('f', 1)
+#define TARGET_FS_IOC_SETFLAGS TARGET_IOWU('f', 2)
+
 struct target_sysinfo {
     abi_long uptime;                /* Seconds since boot */
     abi_ulong loads[3];             /* 1, 5, and 15 minute load averages */
@@ -2432,7 +2442,6 @@ struct target_mq_attr {
 #include "socket.h"
 
 #include "errno_defs.h"
-#include "ioctls_alsa_structs.h"
 
 #define FUTEX_WAIT              0
 #define FUTEX_WAKE              1
@@ -2476,5 +2485,7 @@ struct target_ucred {
     uint32_t uid;
     uint32_t gid;
 };
+
+#include "ioctls_alsa_structs.h"
 
 #endif

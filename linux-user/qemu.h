@@ -131,6 +131,8 @@ typedef struct TaskState {
     struct sigqueue sigqueue_table[MAX_SIGQUEUE_SIZE]; /* siginfo queue */
     struct sigqueue *first_free; /* first free siginfo queue entry */
     int signal_pending; /* non zero if a signal may be pending */
+    int signal_in_syscall; /* non zero if we are in do_syscall() */
+    int signal_restart; /* non zero if we need to restart a syscall */
 } __attribute__((aligned(16))) TaskState;
 
 extern char *exec_path;
@@ -186,10 +188,10 @@ abi_long memcpy_to_target(abi_ulong dest, const void *src,
 void target_set_brk(abi_ulong new_brk);
 abi_long do_brk(abi_ulong new_brk);
 void syscall_init(void);
-abi_long do_syscall(void *cpu_env, int num, abi_long arg1,
-                    abi_long arg2, abi_long arg3, abi_long arg4,
-                    abi_long arg5, abi_long arg6, abi_long arg7,
-                    abi_long arg8);
+abi_long do_syscall(void *cpu_env, int num, abi_ulong arg1,
+                    abi_ulong arg2, abi_ulong arg3, abi_ulong arg4,
+                    abi_ulong arg5, abi_ulong arg6, abi_ulong arg7,
+                    abi_ulong arg8);
 void gemu_log(const char *fmt, ...) GCC_FMT_ATTR(1, 2);
 extern THREAD CPUState *thread_cpu;
 void cpu_loop(CPUArchState *env);
@@ -197,6 +199,7 @@ char *target_strerror(int err);
 int get_osversion(void);
 void fork_start(void);
 void fork_end(int child);
+int syscall_restartable(int syscall_nr);
 
 /* Creates the initial guest address space in the host memory space using
  * the given host start address hint and size.  The guest_start parameter
