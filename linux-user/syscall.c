@@ -2967,25 +2967,13 @@ static inline abi_ulong do_shmat(int shmid, abi_ulong shmaddr, int shmflg)
         return ret;
     }
 
-    mmap_lock();
-
     if (shmaddr)
         host_raddr = shmat(shmid, (void *)g2h(shmaddr), shmflg);
     else {
-        abi_ulong mmap_start;
-
-        mmap_start = mmap_find_vma(0, shm_info.shm_segsz);
-
-        if (mmap_start == -1) {
-            errno = ENOMEM;
-            host_raddr = (void *)-1;
-        } else {
-            host_raddr = shmat(shmid, 0, shmflg);
-        }
+        host_raddr = shmat(shmid, 0, shmflg);
     }
 
     if (host_raddr == (void *)-1) {
-        mmap_unlock();
         return get_errno((long)host_raddr);
     }
     raddr=h2g((unsigned long)host_raddr);
@@ -3002,9 +2990,7 @@ static inline abi_ulong do_shmat(int shmid, abi_ulong shmaddr, int shmflg)
         }
     }
 
-    mmap_unlock();
     return raddr;
-
 }
 
 static inline abi_long do_shmdt(abi_ulong shmaddr)
