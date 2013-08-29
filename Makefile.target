@@ -155,7 +155,7 @@ ifndef CONFIG_HAIKU
 LIBS+=-lm
 endif
 
-LIBS+=-lglhost -ldl
+LIBS+=-lproxyhost -ldl
 
 ifdef QEMU_PROGW
 # The linker builds a windows executable. Make also a console executable.
