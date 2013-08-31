@@ -22,6 +22,7 @@
 #include "helper.h"
 #include "qemu/aes.h"
 #include "qemu/host-utils.h"
+#include "fpu/softfloat.h"
 
 #if !defined(CONFIG_USER_ONLY)
 #include "exec/softmmu_exec.h"
@@ -55,9 +56,10 @@
 
 #define FPUC_EM 0x3f
 
-#define floatx80_lg2 make_floatx80(0x3ffd, 0x9a209a84fbcff799LL)
-#define floatx80_l2e make_floatx80(0x3fff, 0xb8aa3b295c17f0bcLL)
-#define floatx80_l2t make_floatx80(0x4000, 0xd49a784bcd1b8afeLL)
+#define floatx80_lg2 (floatx80)0.301029996
+#define floatx80_l2e (floatx80)2.302585092994046
+#define floatx80_l2t (floatx80)3.32192809
+#define floatx80_ln2 (floatx80)1.4426950408889634073599246
 
 static inline void fpush(CPUX86State *env)
 {
@@ -82,7 +84,7 @@ static inline floatx80 helper_fldt(CPUX86State *env, target_ulong ptr)
 
 static inline void helper_fstt(CPUX86State *env, floatx80 f, target_ulong ptr)
 {
-    CPU_LDoubleU temp;
+    CPU_LDoubleU temp = {0};
 
     temp.d = f;
     cpu_stq_data(env, ptr, temp.l.lower);
@@ -711,7 +713,7 @@ void helper_fpatan(CPUX86State *env)
 
 void helper_fxtract(CPUX86State *env)
 {
-    CPU_LDoubleU temp;
+    CPU_LDoubleU temp = {0};
 
     temp.d = ST0;
 
@@ -935,7 +937,7 @@ void helper_fcos(CPUX86State *env)
 
 void helper_fxam_ST0(CPUX86State *env)
 {
-    CPU_LDoubleU temp;
+    CPU_LDoubleU temp = {0};
     int expdif;
 
     temp.d = ST0;
@@ -968,7 +970,7 @@ void helper_fstenv(CPUX86State *env, target_ulong ptr, int data32)
 {
     int fpus, fptag, exp, i;
     uint64_t mant;
-    CPU_LDoubleU tmp;
+    CPU_LDoubleU tmp = {0};
 
     fpus = (env->fpus & ~0x3800) | (env->fpstt & 0x7) << 11;
     fptag = 0;
@@ -1202,7 +1204,7 @@ void helper_fxrstor(CPUX86State *env, target_ulong ptr, int data64)
 
 void cpu_get_fp80(uint64_t *pmant, uint16_t *pexp, floatx80 f)
 {
-    CPU_LDoubleU temp;
+    CPU_LDoubleU temp = {0};
 
     temp.d = f;
     *pmant = temp.l.lower;
@@ -1211,7 +1213,7 @@ void cpu_get_fp80(uint64_t *pmant, uint16_t *pexp, floatx80 f)
 
 floatx80 cpu_set_fp80(uint64_t mant, uint16_t upper)
 {
-    CPU_LDoubleU temp;
+    CPU_LDoubleU temp = {0};
 
     temp.l.upper = upper;
     temp.l.lower = mant;
