@@ -329,7 +329,7 @@ void x86_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,
                     fptag,
                     env->mxcsr);
         for(i=0;i<8;i++) {
-            CPU_LDoubleU u;
+            CPU_LDoubleU u = {0};
             u.d = env->fpregs[i].d;
             cpu_fprintf(f, "FPR%d=%016" PRIx64 " %04x",
                         i, u.l.lower, u.l.upper);

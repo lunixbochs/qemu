@@ -524,12 +524,12 @@ void helper_fldln2_ST0(CPUX86State *env)
 
 void helper_fldz_ST0(CPUX86State *env)
 {
-    ST0 = floatx80_zero;
+    ST0 = 0;
 }
 
 void helper_fldz_FT0(CPUX86State *env)
 {
-    FT0 = floatx80_zero;
+    FT0 = 0;
 }
 
 uint32_t helper_fnstsw(CPUX86State *env)

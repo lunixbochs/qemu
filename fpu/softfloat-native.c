@@ -505,9 +505,13 @@ int floatx80_compare_quiet( floatx80 a, floatx80 b STATUS_PARAM )
 }
 int floatx80_is_signaling_nan( floatx80 a1)
 {
-    floatx80u u = {0};
+    float64u u;
+    uint64_t a;
     u.f = a1;
-    return ( ( u.i.high & 0x7FFF ) == 0x7FFF ) && (bits64) ( u.i.low<<1 );
+    a = u.i;
+    return
+           ( ( ( a>>51 ) & 0xFFF ) == 0xFFE )
+        && ( a & LIT64( 0x0007FFFFFFFFFFFF ) );
 }
 
 #endif

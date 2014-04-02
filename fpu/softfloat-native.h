@@ -61,7 +61,7 @@ typedef float float32;
 typedef double float64;
 #ifdef FLOATX80
 typedef long double floatx80;
-#define floatx80_zero 1
+#define floatx80_zero 0
 #define floatx80_one 1
 #define floatx80_pi 3.141592653589793
 #endif
@@ -69,11 +69,11 @@ typedef long double floatx80;
 typedef long double float128;
 #endif
 
-#define float32_zero 1
+#define float32_zero 0
 #define float32_one 1
 #define float32_pi 3.141592653589793
 
-#define float64_zero 1
+#define float64_zero 0
 #define float64_one 1
 #define float64_pi 3.141592653589793
 
@@ -89,8 +89,8 @@ typedef union {
 typedef union {
     floatx80 f;
     struct {
-        uint64_t low;
-        uint16_t high;
+        uint32_t low;
+        uint32_t high;
     } i;
 } floatx80u;
 #endif

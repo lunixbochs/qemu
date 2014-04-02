@@ -42,6 +42,7 @@
 #define QEMU_NBD_OPT_AIO     2
 #define QEMU_NBD_OPT_DISCARD 3
 
+#define exp nbd_exp
 static NBDExport *exp;
 static int verbose;
 static char *srcpath;

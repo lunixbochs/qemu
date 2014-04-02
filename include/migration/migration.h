@@ -11,7 +11,10 @@
  *
  */
 
-#ifndef QEMU_MIGRATION_H
+#define migrate_add_blocker(...)
+#define migrate_del_blocker(...)
+
+#if 0
 #define QEMU_MIGRATION_H
 
 #include "qapi/qmp/qdict.h"
