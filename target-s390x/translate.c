@@ -33,14 +33,14 @@
 #include "tcg-op.h"
 #include "qemu/log.h"
 #include "qemu/host-utils.h"
+#include "exec/cpu_ldst.h"
 
 /* global register indexes */
 static TCGv_ptr cpu_env;
 
 #include "exec/gen-icount.h"
-#include "helper.h"
-#define GEN_HELPER 1
-#include "helper.h"
+#include "exec/helper-proto.h"
+#include "exec/helper-gen.h"
 
 
 /* Information that (most) every instruction needs to manipulate.  */
@@ -188,10 +188,6 @@ void s390x_translate_init(void)
                                       offsetof(CPUS390XState, fregs[i].d),
                                       cpu_reg_names[i + 16]);
     }
-
-    /* register helpers */
-#define GEN_HELPER 2
-#include "helper.h"
 }
 
 static TCGv_i64 load_reg(int reg)
@@ -266,11 +262,6 @@ static inline uint64_t ld_code2(CPUS390XState *env, uint64_t pc)
 static inline uint64_t ld_code4(CPUS390XState *env, uint64_t pc)
 {
     return (uint64_t)(uint32_t)cpu_ldl_code(env, pc);
-}
-
-static inline uint64_t ld_code6(CPUS390XState *env, uint64_t pc)
-{
-    return (ld_code2(env, pc) << 32) | ld_code4(env, pc + 2);
 }
 
 static int get_mem_index(DisasContext *s)
@@ -1169,7 +1160,7 @@ static ExitStatus help_goto_direct(DisasContext *s, uint64_t dest)
         update_cc_op(s);
         tcg_gen_goto_tb(0);
         tcg_gen_movi_i64(psw_addr, dest);
-        tcg_gen_exit_tb((tcg_target_long)s->tb);
+        tcg_gen_exit_tb((uintptr_t)s->tb);
         return EXIT_GOTO_TB;
     } else {
         tcg_gen_movi_i64(psw_addr, dest);
@@ -1227,13 +1218,13 @@ static ExitStatus help_branch(DisasContext *s, DisasCompare *c,
             /* Branch not taken.  */
             tcg_gen_goto_tb(0);
             tcg_gen_movi_i64(psw_addr, s->next_pc);
-            tcg_gen_exit_tb((tcg_target_long)s->tb + 0);
+            tcg_gen_exit_tb((uintptr_t)s->tb + 0);
 
             /* Branch taken.  */
             gen_set_label(lab);
             tcg_gen_goto_tb(1);
             tcg_gen_movi_i64(psw_addr, dest);
-            tcg_gen_exit_tb((tcg_target_long)s->tb + 1);
+            tcg_gen_exit_tb((uintptr_t)s->tb + 1);
 
             ret = EXIT_GOTO_TB;
         } else {
@@ -1256,7 +1247,7 @@ static ExitStatus help_branch(DisasContext *s, DisasCompare *c,
             update_cc_op(s);
             tcg_gen_goto_tb(0);
             tcg_gen_movi_i64(psw_addr, s->next_pc);
-            tcg_gen_exit_tb((tcg_target_long)s->tb + 0);
+            tcg_gen_exit_tb((uintptr_t)s->tb + 0);
 
             gen_set_label(lab);
             if (is_imm) {
@@ -4799,8 +4790,8 @@ static inline void gen_intermediate_code_internal(S390CPU *cpu,
         }
 
         status = NO_EXIT;
-        if (unlikely(!QTAILQ_EMPTY(&env->breakpoints))) {
-            QTAILQ_FOREACH(bp, &env->breakpoints, entry) {
+        if (unlikely(!QTAILQ_EMPTY(&cs->breakpoints))) {
+            QTAILQ_FOREACH(bp, &cs->breakpoints, entry) {
                 if (bp->pc == dc.pc) {
                     status = EXIT_PC_STALE;
                     do_debug = true;
