@@ -189,6 +189,9 @@ abi_long lua_hook_syscall(
                         }
                         lua_call(L, i, 1);
                         int ret = lua_tonumber(L, -1);
+                        if (lua_isnil(L, -1)) {
+                            ret = -1;
+                        }
                         lua_pop(L, -1);
                         return ret;
                     }
