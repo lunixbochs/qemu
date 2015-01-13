@@ -114,6 +114,7 @@ int __clone2(int (*fn)(void *), void *child_stack_base,
 #include "uname.h"
 
 #include "qemu.h"
+#include "lua.h"
 
 #define CLONE_NPTL_FLAGS2 (CLONE_SETTLS | \
     CLONE_PARENT_SETTID | CLONE_CHILD_SETTID | CLONE_CHILD_CLEARTID)
@@ -5494,13 +5495,20 @@ static target_timer_t get_timer_id(abi_long arg)
     return timerid;
 }
 
-/* do_syscall() should always have a single exit point at the end so
-   that actions, such as logging of syscall results, can be performed.
-   All errnos that do_syscall() returns must be -TARGET_<errcode>. */
 abi_long do_syscall(void *cpu_env, int num, abi_long arg1,
                     abi_long arg2, abi_long arg3, abi_long arg4,
                     abi_long arg5, abi_long arg6, abi_long arg7,
-                    abi_long arg8)
+                    abi_long arg8) {
+    return lua_hook_syscall(cpu_env, num, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+}
+
+/* do_syscall() should always have a single exit point at the end so
+   that actions, such as logging of syscall results, can be performed.
+   All errnos that do_syscall() returns must be -TARGET_<errcode>. */
+abi_long do_syscall_nolua(void *cpu_env, int num, abi_long arg1,
+                          abi_long arg2, abi_long arg3, abi_long arg4,
+                          abi_long arg5, abi_long arg6, abi_long arg7,
+                          abi_long arg8)
 {
     CPUState *cpu = ENV_GET_CPU(cpu_env);
     abi_long ret;

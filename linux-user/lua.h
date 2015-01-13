@@ -5,6 +5,8 @@
 #include <lua.h>
 #include <lualib.h>
 
+#include "lua_interface.h"
+
 extern lua_State *lua_state;
 extern int lua_init(const char *);
 #endif
