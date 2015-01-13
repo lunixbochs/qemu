@@ -39,6 +39,7 @@ char *exec_path;
 int singlestep;
 const char *filename;
 const char *argv0;
+const char *lua_path;
 int gdbstub_port;
 envlist_t *envlist;
 static const char *cpu_model;
@@ -3555,6 +3556,11 @@ static void handle_arg_randseed(const char *arg)
     srand(seed);
 }
 
+static void handle_arg_lua(const char *arg)
+{
+    lua_path = strdup(arg);
+}
+
 static void handle_arg_gdb(const char *arg)
 {
     gdbstub_port = atoi(arg);
@@ -3650,6 +3656,8 @@ struct qemu_argument {
 static const struct qemu_argument arg_table[] = {
     {"h",          "",                 false, handle_arg_help,
      "",           "print this help"},
+    {"l",          "QEMU_LUA",         true,  handle_arg_lua,
+     "lua",        "loads Lua syscall hooks from 'path'"},
     {"g",          "QEMU_GDB",         true,  handle_arg_gdb,
      "port",       "wait gdb connection to 'port'"},
     {"L",          "QEMU_LD_PREFIX",   true,  handle_arg_ld_prefix,
@@ -4388,6 +4396,11 @@ int main(int argc, char **argv, char **envp)
     /* This will be filled in on the first SYS_HEAPINFO call.  */
     ts->heap_limit = 0;
 #endif
+
+    if (lua_path) {
+        fprintf(stderr, "qemu: loading lua hooks from path %s\n", lua_path);
+        exit(1);
+    }
 
     if (gdbstub_port) {
         if (gdbserver_start(gdbstub_port) < 0) {
