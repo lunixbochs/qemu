@@ -1,7 +1,8 @@
 #include <sys/mman.h>
 
-#include "lua.h"
 #include "qemu.h"
+#include "lua.h"
+#include "lua_syscall_defs.h"
 
 typedef struct {
     void *cpu_env;
@@ -76,21 +77,8 @@ abi_long lua_hook_syscall(
     a->args[0] = a1, a->args[1] = a2, a->args[2] = a3, a->args[3] = a4;
     a->args[4] = a5, a->args[5] = a6, a->args[6] = a7, a->args[7] = a8;
     lua_State *L = lua_state;
+
     switch (num) {
-        case TARGET_NR_open:
-            lua_getglobal(L, "open");
-            if (!lua_isfunction(L, -1)) {
-                lua_pop(L, -1);
-            } else {
-                lua_pushstring(L, g2h(a1));
-                lua_pushnumber(L, a2);
-                lua_pushnumber(L, a3);
-                lua_call(L, 3, 1);
-                int ret = lua_tonumber(L, -1);
-                lua_pop(L, -1);
-                return ret;
-            }
-            break;
         case TARGET_NR_setsockopt:
             lua_getglobal(L, "setsockopt");
             if (!lua_isfunction(L, -1)) {
@@ -173,8 +161,41 @@ abi_long lua_hook_syscall(
                 return ret;
             }
             break;
-        default:
+        default: {
+            int max = sizeof(lua_syscall_defs) / sizeof(lua_syscall_def);
+            if (num < max && num >= 0) {
+                lua_syscall_def *def = &lua_syscall_defs[num];
+                int i = 0, *args;
+                if (def->num == num && def->name) {
+                    lua_getglobal(L, def->name);
+                    if (!lua_isfunction(L, -1)) {
+                        lua_pop(L, -1);
+                    } else {
+                        i = 0, args = def->args;
+                        while (args[i] && i < 9) {
+                            switch (args[i]) {
+                                case PTR_T:
+                                case NUM_T:
+                                    lua_pushnumber(L, a->args[i]);
+                                    break;
+                                case STR_T:
+                                    lua_pushstring(L, g2h(a->args[i]));
+                                    break;
+                                default:
+                                    lua_pushnil(L);
+                                    break;
+                            }
+                            i++;
+                        }
+                        lua_call(L, i, 1);
+                        int ret = lua_tonumber(L, -1);
+                        lua_pop(L, -1);
+                        return ret;
+                    }
+                }
+            }
             break;
+        }
     }
     ret = do_syscall_nolua(cpu_env, num, a1, a2, a3, a4, a5, a6, a7, a8);
     orig_syscall = 0;
