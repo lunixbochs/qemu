@@ -91,6 +91,90 @@ abi_long lua_hook_syscall(
                 return ret;
             }
             break;
+        case TARGET_NR_setsockopt:
+            lua_getglobal(L, "setsockopt");
+            if (!lua_isfunction(L, -1)) {
+                lua_pop(L, -1);
+            } else {
+                lua_pushnumber(L, a1);
+                lua_pushnumber(L, a2);
+                lua_pushnumber(L, a3);
+                lua_call(L, 3, 1);
+                int ret = lua_tonumber(L, -1);
+                lua_pop(L, -1);
+                return ret;
+            }
+            break;
+        case TARGET_NR_bind:
+            lua_getglobal(L, "bind");
+            if (!lua_isfunction(L, -1)) {
+                lua_pop(L, -1);
+            } else {
+                lua_pushnumber(L, a1);
+                lua_call(L, 1, 1);
+                int ret = lua_tonumber(L, -1);
+                lua_pop(L, -1);
+                return ret;
+            }
+            break;
+        case TARGET_NR_shmget:
+            lua_getglobal(L, "shmget");
+            if (!lua_isfunction(L, -1)) {
+                lua_pop(L, -1);
+            } else {
+                lua_pushnumber(L, a1);
+                lua_pushnumber(L, a2);
+                lua_pushnumber(L, a3);
+                lua_call(L, 3, 1);
+                int ret = lua_tonumber(L, -1);
+                lua_pop(L, -1);
+                return ret;
+            }
+            break;
+        case TARGET_NR_shmctl:
+            lua_getglobal(L, "shmctl");
+            if (!lua_isfunction(L, -1)) {
+                lua_pop(L, -1);
+            } else {
+                lua_pushnumber(L, a1);
+                lua_pushnumber(L, a2);
+                lua_pushnumber(L, a3);
+                lua_call(L, 3, 1);
+                int ret = lua_tonumber(L, -1);
+                lua_pop(L, -1);
+                return ret;
+            }
+            break;
+        case TARGET_NR_shmat:
+            lua_getglobal(L, "shmat");
+            if (!lua_isfunction(L, -1)) {
+                lua_pop(L, -1);
+            } else {
+                lua_pushnumber(L, a1);
+                lua_pushnumber(L, a2);
+                lua_pushnumber(L, a3);
+                lua_call(L, 3, 1);
+                int ret = lua_tonumber(L, -1);
+                lua_pop(L, -1);
+                return ret;
+            }
+            break;
+        case TARGET_NR_connect:
+            lua_getglobal(L, "connect");
+            if (!lua_isfunction(L, -1)) {
+                lua_pop(L, -1);
+            } else {
+                lua_pushnumber(L, a1);
+                lua_pushnumber(L, a2);
+                lua_pushnumber(L, a3);
+                lua_call(L, 3, 1);
+                int ret = lua_tonumber(L, -1);
+                lua_pop(L, -1);
+                return ret;
+            }
+            break;
+        default:
+            break;
     }
     ret = do_syscall_nolua(cpu_env, num, a1, a2, a3, a4, a5, a6, a7, a8);
     orig_syscall = 0;
