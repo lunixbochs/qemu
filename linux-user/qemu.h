@@ -1,6 +1,7 @@
 #ifndef QEMU_H
 #define QEMU_H
 
+#include <lua.h>
 #include <signal.h>
 #include <string.h>
 

@@ -16,6 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -26,6 +27,7 @@
 #include <sys/syscall.h>
 #include <sys/resource.h>
 
+#include "lua.h"
 #include "qemu.h"
 #include "qemu-common.h"
 #include "cpu.h"
@@ -4398,8 +4400,10 @@ int main(int argc, char **argv, char **envp)
 #endif
 
     if (lua_path) {
-        fprintf(stderr, "qemu: loading lua hooks from path %s\n", lua_path);
-        exit(1);
+        int err = lua_init(lua_path);
+        if (err) {
+            exit(err);
+        }
     }
 
     if (gdbstub_port) {
