@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "lua.h"
 #include "lua_util.h"
 
@@ -45,12 +47,23 @@ static int buffer_tostring(lua_State *L) {
     return 1;
 }
 
-static int buffer_copyto(lua_State *L) {
-    lua_Buffer *src = checkbuffer(L, 1);
-    lua_Buffer *dst = checkbuffer(L, 2);
-    size_t size = MIN(dst->size, src->size);
-    memcpy(dst->data, src->data, size);
-    return 0;
+static int buffer_write(lua_State *L) {
+    lua_Buffer *dst = checkbuffer(L, 1);
+    int type = lua_type(L, 2);
+    switch (type) {
+        case LUA_TSTRING: {
+            const char *str = luaL_checkstring(L, 2);
+            strncpy(dst->data, str, dst->size);
+            return 0;
+        }
+        case LUA_TUSERDATA: {
+            lua_Buffer *src = checkbuffer(L, 2);
+            memcpy(dst->data, src->data, MIN(dst->size, src->size));
+            return 0;
+        }
+        default:
+            return luaL_error(L, "invalid type for buffer.write(): %s", lua_typename(L, type));
+    }
 }
 
 static int buffer_slice(lua_State *L) {
@@ -77,8 +90,8 @@ static const luaL_Reg buffer_lib[] = {
     {"__gc", buffer_gc},
     {"__len", buffer_len},
     {"__tostring", buffer_tostring},
-    {"copyto", buffer_copyto},
     {"slice", buffer_slice},
+    {"write", buffer_write},
     {NULL, NULL},
 };
 
