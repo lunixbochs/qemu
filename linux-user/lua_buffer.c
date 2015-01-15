@@ -69,13 +69,16 @@ static int buffer_write(lua_State *L) {
 static int buffer_slice(lua_State *L) {
     lua_Buffer *buf = checkbuffer(L, 1);
     int start = 0;
-    size_t size = buf->size;
+    size_t end, size;
     if (!lua_isnone(L, 2)) {
         start = luaL_checkint(L, 2) - 1;
     }
     if (!lua_isnone(L, 3)) {
-        size = luaL_checkint(L, 3);
+        end = luaL_checkint(L, 3);
+    } else {
+        end = buf->size - start + 1;
     }
+    size = end - start;
     size = MIN(start + size, buf->size);
     if (start < 0 || start > buf->size) {
         return luaL_error(L, "buffer index (%d) out of bounds (%d-%d)", start + 1, 1, buf->size);
