@@ -25,7 +25,7 @@ int lua_init(const char *lua_path) {
         return 1;
     }
     luaL_openlibs(lua_state);
-    lua_set_globals(lua_state);
+    lua_api_init(lua_state);
 
     glob_t globtmp;
     glob("*.lua", 0, NULL, &globtmp);
