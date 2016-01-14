@@ -599,3 +599,8 @@ void helper_debug(CPUX86State *env)
     cs->exception_index = EXCP_DEBUG;
     cpu_loop_exit(cs);
 }
+
+void helper_blocktrace(CPUX86State *env, uint64_t pc) {
+    printf("pc=0x%08llx  fs=0x%08llx  gs=0x%08llx\n",
+            pc, env->segs[R_FS].base, env->segs[R_GS].base);
+}

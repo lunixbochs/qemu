@@ -7967,6 +7967,9 @@ void gen_intermediate_code(CPUX86State *env, TranslationBlock *tb)
     cpu_cc_srcT = tcg_temp_local_new();
 
     dc->is_jmp = DISAS_NEXT;
+
+    gen_helper_blocktrace(cpu_env, tcg_const_i64(pc_start));
+
     pc_ptr = pc_start;
     num_insns = 0;
     max_insns = tb->cflags & CF_COUNT_MASK;
